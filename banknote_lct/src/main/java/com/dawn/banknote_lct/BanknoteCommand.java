@@ -30,7 +30,7 @@ public class BanknoteCommand {
      * @return 开启收款指令
      */
     public static String getStartMoneyCommand(){
-        return "02";
+        return "3E";
     }
 
     /**
@@ -38,6 +38,6 @@ public class BanknoteCommand {
      * @return 停止收款指令
      */
     public static String getStopMoneyCommand(){
-        return "0f";
+        return "5E";
     }
 }

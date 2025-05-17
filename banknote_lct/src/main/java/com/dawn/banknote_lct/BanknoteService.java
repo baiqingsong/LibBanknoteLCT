@@ -46,7 +46,6 @@ public class BanknoteService extends Service {
     private BanknoteReceiverListener mListener;
 
     private int totalMoney = 0;//总收款
-    private boolean receiverStatus = false;
     private LSerialUtil mSerialUtil;
     private void startPort(int port, boolean auto_check_status){
         Log.e("dawn", "startPort port = " + port + ", auto_check_status = " + auto_check_status);
@@ -77,9 +76,10 @@ public class BanknoteService extends Service {
                         if("808f".equals(str)){
                             //握手
                             sendMsg(BanknoteCommand.getStatusCommand());//握手回应02
+                            if(mListener != null)
+                                mListener.getStatus(true);
                         }else if("10".equals(str)){
                             //设备状态
-                            sendMsg(BanknoteCommand.getStatusCommand());
 
                         }else if("3e".equals(str)){
                             //设备状态
@@ -103,7 +103,7 @@ public class BanknoteService extends Service {
                             int moneyInt = hexToInt(moneyData);
                             int errorStart = hexToInt("20");
                             int errorStop = hexToInt("2f");
-                            if(moneyInt <= errorStart || moneyInt >= errorStop) {
+                            if(moneyInt <= errorStop && moneyInt >= errorStart) {
                                 //错误
                                 String error = null;
                                 switch (moneyData){
@@ -145,15 +145,10 @@ public class BanknoteService extends Service {
                             int moneyStop = hexToInt("4f");
                             if(moneyInt >= moneyStart && moneyInt <= moneyStop) {
                                 //收款
-                                if(receiverStatus){//接收纸钞
-
-                                    sendMsg(BanknoteCommand.getReceiverCommand());
-                                    int moneyIndex = moneyInt - moneyStart + 1;
-                                    if(mListener != null)
-                                        mListener.receiverMoney(moneyIndex, totalMoney);
-                                }else{//拒收纸钞
-                                    sendMsg(BanknoteCommand.getRejectCommand());
-                                }
+                                sendMsg(BanknoteCommand.getReceiverCommand());
+                                int moneyIndex = moneyInt - moneyStart + 1;
+                                if(mListener != null)
+                                    mListener.receiverMoney(moneyIndex, totalMoney);
                             }
                         }
                     }catch (Exception e){
@@ -226,11 +221,15 @@ public class BanknoteService extends Service {
                     if(money <= 0)
                         return;
                     totalMoney = money;
-                    receiverStatus = true;
+                    sendMsg(BanknoteCommand.getStartMoneyCommand());
+                    if(mListener != null)
+                        mListener.startMoneyStatus(true);
                     break;
                 case "stop_money"://停止收款
                     totalMoney = 0;
-                    receiverStatus = false;
+                    sendMsg(BanknoteCommand.getStopMoneyCommand());
+                    if(mListener != null)
+                        mListener.stopMoneyStatus(true);
                     break;
             }
         }
