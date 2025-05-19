@@ -45,7 +45,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void startPort(View view){
         // Start the port with the specified parameters
-        BanknoteFactory.getInstance(this).startPort(1);
+        BanknoteFactory.getInstance(this).startService(4);
     }
 
     public void startMoney(View view){

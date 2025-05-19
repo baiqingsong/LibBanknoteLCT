@@ -2,6 +2,8 @@ package com.dawn.banknote_lct;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 
 public class BanknoteFactory {
@@ -10,7 +12,6 @@ public class BanknoteFactory {
     private static Context mContext;
     private BanknoteFactory(Context context) {
         this.mContext = context;
-        context.startService(new Intent(context, BanknoteService.class));
     }
     public static BanknoteFactory getInstance(Context context) {
         if (instance == null) {
@@ -32,11 +33,31 @@ public class BanknoteFactory {
         this.mBanknoteReceiverListener = listener;
     }
 
+    private Handler mHandler = new Handler(){
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            switch (msg.what){
+                case 0:
+                    startPort();
+                    break;
+            }
+        }
+    };
 
-    public void startPort(int port) {
+    private int serialPort = 0;//串口号
+
+    public void startService(int port) {
+        serialPort = port;
+        mContext.startService(new Intent(mContext, BanknoteService.class));
+        mHandler.sendEmptyMessageDelayed(0, 5000);
+    }
+
+
+    public void startPort() {
         Intent intent = new Intent(BanknoteConstant.RECEIVER_BANKNOTE);
         intent.putExtra("command", "start_port");
-        intent.putExtra("port", port);
+        intent.putExtra("port", serialPort);
         mContext.sendBroadcast(intent);
     }
 
