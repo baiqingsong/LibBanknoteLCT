@@ -6,55 +6,65 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 
-import com.dawn.banknote_lct.BanknoteFactory;
+import com.dawn.banknote_lct.BanknoteManager;
 import com.dawn.banknote_lct.BanknoteReceiverListener;
 
 public class MainActivity extends AppCompatActivity {
+
+    private static final String TAG = "MainActivity";
+    private BanknoteManager mBanknoteManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        BanknoteFactory.getInstance(this).setListener(new BanknoteReceiverListener() {
+        mBanknoteManager = BanknoteManager.getInstance(this);
+        mBanknoteManager.setListener(new BanknoteReceiverListener() {
             @Override
-            public void getStatus(boolean status) {
-                Log.e("dawn", "getStatus status = " + status);
+            public void onConnected(boolean connected) {
+                Log.d(TAG, "onConnected: " + connected);
             }
 
             @Override
-            public void startMoneyStatus(boolean status) {
-                Log.e("dawn", "startMoneyStatus status = " + status);
+            public void onStartMoney(boolean success) {
+                Log.d(TAG, "onStartMoney: " + success);
             }
 
             @Override
-            public void stopMoneyStatus(boolean status) {
-                Log.e("dawn", "stopMoneyStatus status = " + status);
+            public void onStopMoney(boolean success) {
+                Log.d(TAG, "onStopMoney: " + success);
             }
 
             @Override
-            public void receiverMoney(int receiverMoney, int totalMoney) {
-                Log.e("dawn", "receiverMoney receiverMoney = " + receiverMoney + ", totalMoney = " + totalMoney);
+            public void onMoneyReceived(int moneyIndex, int totalMoney) {
+                Log.d(TAG, "onMoneyReceived index=" + moneyIndex + ", total=" + totalMoney);
             }
 
             @Override
-            public void receiverMoneyError(String errorMsg) {
-                Log.e("dawn", "receiverMoneyError errorMsg = " + errorMsg);
+            public void onError(String errorMsg) {
+                Log.e(TAG, "onError: " + errorMsg);
             }
         });
     }
 
-    public void startPort(View view){
-        // Start the port with the specified parameters
-        BanknoteFactory.getInstance(this).startService(4);
+    public void startPort(View view) {
+        mBanknoteManager.startPort(4);
     }
 
-    public void startMoney(View view){
-        // Start the money transaction with the specified parameters
-        BanknoteFactory.getInstance(this).startMoney(5);
+    public void startMoney(View view) {
+        mBanknoteManager.startMoney(5);
     }
 
-    public void stopMoney(View view){
-        // Stop the money transaction
-        BanknoteFactory.getInstance(this).stopMoney();
+    public void stopMoney(View view) {
+        mBanknoteManager.stopMoney();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (mBanknoteManager != null) {
+            mBanknoteManager.removeListener();
+            mBanknoteManager.destroy();
+        }
     }
 }
